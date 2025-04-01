@@ -201,7 +201,6 @@ async def samuiluchshiirouterbestever(request: Request):
     body = await request.json() if method in ["POST", "PUT", "DELETE"] else {}
     action = body.get("action", "") if method in ["POST", "PUT", "DELETE"] else request.query_params.get("action", "")
 
-    # Регистрация
     if action == "register":
         if method == "POST":
             username = body.get("username", "").strip()
@@ -235,7 +234,6 @@ async def samuiluchshiirouterbestever(request: Request):
                 "admin": new_user["is_admin"]
             })
 
-    # Авторизация
     elif action == "login":
         if method == "POST":
             username = body.get("username", "").strip()
@@ -292,7 +290,6 @@ async def samuiluchshiirouterbestever(request: Request):
                 else:
                     return JSONResponse(status_code=404, content={"error": "Пользователь не найден!"})
 
-    # Получение всех пользователей
     elif action == "get_all_users":
         if method == "GET":
             username = body.get("username", request.query_params.get("username", ""))
@@ -312,7 +309,6 @@ async def samuiluchshiirouterbestever(request: Request):
                 "users": all_users
             })
 
-    # Получение конкретного пользователя
     elif action == "get_user":
         if method == "GET":
             username = body.get("username", request.query_params.get("username", ""))
@@ -328,7 +324,6 @@ async def samuiluchshiirouterbestever(request: Request):
                 "user": user
             })
 
-    # Удаление пользователя
     elif action == "delete_user":
         if method == "DELETE":
             username = body.get("username", "")
@@ -351,7 +346,6 @@ async def samuiluchshiirouterbestever(request: Request):
             else:
                 return JSONResponse(status_code=404, content={"error": "Пользователь не найден!"})
 
-    # Обновление пользователя
     elif action == "update_user":
         if method == "PUT":
             username = body.get("username", "")
@@ -362,7 +356,6 @@ async def samuiluchshiirouterbestever(request: Request):
             if not user:
                 return JSONResponse(status_code=404, content={"error": "Пользователь не найден!"})
 
-            # Обновляем данные
             if "password" in body:
                 user["password"] = body["password"]
             if "score" in body:
@@ -373,7 +366,6 @@ async def samuiluchshiirouterbestever(request: Request):
             save_user(username, user)
             return JSONResponse(content={"success": True, "message": f"Пользователь {username} обновлён!"})
 
-    # Работа с очками
     elif action == "score":
         if method == "GET":
             username = body.get("username", request.query_params.get("username", ""))
@@ -432,7 +424,6 @@ async def samuiluchshiirouterbestever(request: Request):
             else:
                 return JSONResponse(status_code=404, content={"error": "Пользователь не найден!"})
 
-    # Получение всех заметок
     elif action == "get_all_notes":
         if method == "GET":
             try:
@@ -454,7 +445,6 @@ async def samuiluchshiirouterbestever(request: Request):
                 print(f"Ошибка при обработке GET-запроса: {e}")
                 raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
 
-    # Получение конкретной заметки
     elif action == "get_note":
         if method == "GET":
             index = int(body.get("index", request.query_params.get("index", -1)))
@@ -470,7 +460,6 @@ async def samuiluchshiirouterbestever(request: Request):
                 "note": note
             })
 
-    # Добавление заметки
     elif action == "add_note":
         if method == "POST":
             text = body.get("text", "")
@@ -500,7 +489,6 @@ async def samuiluchshiirouterbestever(request: Request):
 
             return JSONResponse(content={"success": True})
 
-    # Удаление заметки
     elif action == "delete_note":
         if method == "DELETE":
             index = body.get("index", -1)
@@ -521,7 +509,6 @@ async def samuiluchshiirouterbestever(request: Request):
             else:
                 return JSONResponse(status_code=404, content={"error": "Заметка не найдена!"})
 
-    # Обновление заметки
     elif action == "update_note":
         if method == "PUT":
             index = body.get("index", -1)
