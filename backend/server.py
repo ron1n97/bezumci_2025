@@ -1,11 +1,20 @@
 import re
 from fastapi import FastAPI, Request, HTTPException, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import time
 import os
 import random
 
 app = FastAPI()
+# Разрешаем запросы со всех источников (можно сузить)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Можно указать ["http://localhost:3000"]
+    allow_credentials=True,
+    allow_methods=["*"],  # Разрешить все методы (GET, POST и т. д.)
+    allow_headers=["*"],  # Разрешить все заголовки
+)
 
 
 router = APIRouter(prefix="/besumniiapi", tags=["bezumci"])
@@ -62,9 +71,9 @@ def process_requests():
 
                 match = re.search(r"request_(\d+)\.png", request_file.name)
                 if match:
-                    request_id = int(match.group(1))
+                    request_id = match.group(1)
                 else:
-                    request_id = 0
+                    request_id = ""
                 response_data = f"Сервер получил: {data}"
 
                 method = data["method"]
