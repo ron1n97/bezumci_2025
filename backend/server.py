@@ -1,3 +1,4 @@
+import re
 from fastapi import FastAPI, Request, HTTPException, APIRouter
 from fastapi.responses import JSONResponse
 import time
@@ -6,7 +7,77 @@ import random
 
 app = FastAPI()
 
+
 router = APIRouter(prefix="/besumniiapi", tags=["bezumci"])
+
+import time
+from pathlib import Path
+from fastapi import FastAPI
+import cv2
+import qrcode
+import numpy as np
+import json  # Заменим eval() на что-то менее страшное
+
+
+SHARED_DIR = Path(__file__).parent.parent / "shared_qr"
+print(SHARED_DIR.absolute())
+
+
+# Функция декодирования QR через OpenCV и qreader
+def decode_qr(image_path: Path):
+    # Читаем изображение через OpenCV
+    img = cv2.imread(str(image_path))
+    # Используем qreader для декодирования
+    from qreader import QReader
+
+    qreader = QReader()
+    decoded_text = qreader.detect_and_decode(image=img)
+    return decoded_text[0] if decoded_text else None
+
+
+@app.on_event("startup")
+def start_scanning():
+    import threading
+
+    print("Запускаем AQRI")
+    threading.Thread(target=process_requests, daemon=True).start()
+
+
+def process_requests():
+    while True:
+        requests_dir = SHARED_DIR / "requests"
+        responses_dir = SHARED_DIR / "responses"
+
+        for request_file in requests_dir.glob("request_*.png"):
+            print("Проверка QR кода ", request_file)
+            try:
+                # Декодируем QR
+                decoded_text = decode_qr(request_file)
+                if not decoded_text:
+                    continue
+
+                # Парсим JSON (теперь без eval!)
+                data = json.loads(decoded_text)
+                print("Декодированные данные", data)
+
+                match = re.search(r"request_(\d+)\.png", request_file.name)
+                if match:
+                    request_id = int(match.group(1))
+                else:
+                    request_id = 0
+                response_data = f"Сервер получил: {data}"
+
+                # Генерируем ответный QR
+                qr = qrcode.make(response_data)
+                response_path = responses_dir / f"response_{request_id}.png"
+                qr.save(response_path)
+
+                request_file.unlink()  # Удаляем запрос
+            except Exception as e:
+                print(f"Ошибка: {e}")
+
+        time.sleep(10)
+
 
 def read_notes() -> list[str]:
     if not os.path.exists("notes.txt"):
@@ -43,7 +114,10 @@ def edit_note(index: int, new_text: str) -> bool:
     return False
 
 
-@app.route("/офигетькакойкрутойэндпоинтвсенанемработает", methods=["GET", "POST", "DELETE", "PUT"])
+@app.route(
+    "/офигетькакойкрутойэндпоинтвсенанемработает",
+    methods=["GET", "POST", "DELETE", "PUT"],
+)
 async def samuiluchshiirouterbestever(request: Request):
     """Здесь не будет никакого описания, даже не думайте об этом"""
     method = request.method
@@ -64,7 +138,9 @@ async def samuiluchshiirouterbestever(request: Request):
         body = await request.json()
         index = body.get("index")
         if index is None or not isinstance(index, int):
-            raise HTTPException(status_code=400, detail="Index required and must be an integer")
+            raise HTTPException(
+                status_code=400, detail="Index required and must be an integer"
+            )
         if delete_note(index):
             return JSONResponse(content={"success": True})
         else:
