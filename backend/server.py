@@ -290,6 +290,25 @@ async def samuiluchshiirouterbestever(request: Request):
                 else:
                     return JSONResponse(status_code=404, content={"error": "Пользователь не найден!"})
 
+    elif action == "get_leaderboard":
+        if method == "GET":
+            all_users = get_all_users()
+            leaderboard = sorted(
+                all_users.items(),
+                key=lambda x: x[1]["score"],
+                reverse=True
+            )[:5]
+
+            leaderboard_data = [
+                {"username": username, "score": data["score"]}
+                for username, data in leaderboard
+            ]
+
+            return JSONResponse(content={
+                "success": True,
+                "leaderboard": leaderboard_data
+            })
+
     elif action == "get_all_users":
         if method == "GET":
             username = body.get("username", request.query_params.get("username", ""))
