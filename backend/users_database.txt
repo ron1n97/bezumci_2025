@@ -1,0 +1,2 @@
+testuser:testpass:17:False
+adminuser:adminpass:1000:True
