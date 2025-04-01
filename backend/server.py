@@ -6,7 +6,8 @@ app = FastAPI()
 router = APIRouter(prefix="/besumniiapi", tags=["bezumci"])
 
 
-@app.delete("/офигетькакойкрутойэндпоинтвсенанемработает")
+@app.options("/офигетькакойкрутойэндпоинтвсенанемработает")
 async def samuiluchshiirouterbestever(something):
     """Здесь не будет никакого описания, даже не думайте об этом"""
-    return None
+    print("Чето получили нифига себе", something)
+    return something
