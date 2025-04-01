@@ -67,6 +67,46 @@ def process_requests():
                     request_id = 0
                 response_data = f"Сервер получил: {data}"
 
+                method = data["method"]
+                if method == "GET":
+                    notes = read_notes()
+                    response_data = {"notes": notes}
+
+                elif method == "POST":
+                    body = data["body"]
+                    text = body.get("text")
+                    if not text:
+                        raise Exception("Text required")
+                    add_note(text)
+
+                    notes = read_notes()
+                    response_data = {"notes": notes}
+
+                elif method == "DELETE":
+                    body = data["body"]
+                    index = body.get("index")
+                    if index is None or not isinstance(index, int):
+                        raise Exception(
+                            "Index required and must be an integer",
+                        )
+                    if delete_note(index):
+                        notes = read_notes()
+                        response_data = {"notes": notes}
+                    else:
+                        raise Exception("Note not found")
+
+                elif method == "PUT":
+                    body = data["body"]
+                    index = body.get("index")
+                    new_text = body.get("new_text")
+                    if index is None or not isinstance(index, int) or not new_text:
+                        raise Exception("Index and new_text required")
+                    if edit_note(index, new_text):
+                        notes = read_notes()
+                        response_data = {"notes": notes}
+                    else:
+                        raise Exception("Note not found")
+
                 # Генерируем ответный QR
                 qr = qrcode.make(response_data)
                 response_path = responses_dir / f"response_{request_id}.png"
